@@ -1,0 +1,37 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rr:   <http://rdfpro.fbk.eu/ontologies/rules#> .
+@prefix :     <http://www.fbk.eu/ontologies/virtualcoach#> .
+
+<http://www.fbk.eu/ontologies/virtualcoach#> rr:prefix "".
+
+rdfs:domain a rr:MetaVocabularyTerm.
+rdfs:range a rr:MetaVocabularyTerm.
+rdfs:subClassOf a rr:MetaVocabularyTerm.
+rdfs:subPropertyOf a rr:MetaVocabularyTerm.
+
+:rdfs2 a rr:Rule, rr:NonFixpointRule;
+    rr:phase  1;
+    rr:insert """ ?s rdf:type ?x. """;
+    rr:where  """ ?s ?p ?o. ?p rdfs:domain ?x. ?x rdfs:subClassOf ?z.
+                  FILTER (?z = :Meal || ?z = :ConsumedFood || ?z = :Profile || ?z = :User || ?z = :Violation) """.
+
+:rdfs3 a rr:Rule, rr:NonFixpointRule;
+    rr:phase  1;
+    rr:insert """ ?o rdf:type ?x """;
+    rr:where  """ ?s ?p ?o. ?p rdfs:range ?x. ?x rdfs:subClassOf ?z.
+                  FILTER (?z = :Meal || ?z = :ConsumedFood || ?z = :Profile || ?z = :User || ?z = :Violation) """.
+
+:rdfs7 a rr:Rule;
+    rr:phase  2;
+    rr:insert """ ?s ?q ?o. """;
+    rr:where  """ ?s ?p ?o. ?p rdfs:subPropertyOf ?q.
+                  FILTER (?p != ?q)
+                  FILTER (STRSTARTS(STR(?q), "http://www.fbk.eu/ontologies/virtualcoach#")) """.
+
+:rdfs9 a rr:Rule;
+    rr:phase  3;
+    rr:insert """ ?s rdf:type ?y. """;
+    rr:where  """ ?s rdf:type ?x. ?x rdfs:subClassOf ?y. ?y rdfs:subClassOf ?z.
+                  FILTER (?x != ?y)
+                  FILTER (?z = :Meal || ?z = :ConsumedFood || ?z = :Profile || ?z = :User || ?z = :Violation) """.

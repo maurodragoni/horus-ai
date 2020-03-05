@@ -1,0 +1,6 @@
+eu.fbk.ict.ehealth.virtualcoach.reasoner.FunctionComputeTimestamp
+eu.fbk.ict.ehealth.virtualcoach.reasoner.FunctionComputeViolationLevel
+eu.fbk.ict.ehealth.virtualcoach.reasoner.FunctionMintNutrient
+eu.fbk.ict.ehealth.virtualcoach.reasoner.FunctionMintViolation
+eu.fbk.ict.ehealth.virtualcoach.reasoner.FunctionMintEntityType
+eu.fbk.ict.ehealth.virtualcoach.reasoner.FunctionSeq

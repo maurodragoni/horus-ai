@@ -1,0 +1,14 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rr:   <http://rdfpro.fbk.eu/ontologies/rules#> .
+@prefix :     <http://www.fbk.eu/ontologies/virtualcoach#> .
+
+<http://www.fbk.eu/ontologies/virtualcoach#> rr:prefix "".
+
+:direct_nutrient_type a rr:Rule, rr:NonFixpointRule;
+    rr:insert """ ?nutrient :directType ?class """;
+    rr:where  """ ?nutrient a :Nutrient, ?class.
+                  ?class rdfs:subClassOf :Nutrient.
+                  FILTER NOT EXISTS { ?nutrient a ?c.
+                                      ?c rdfs:subClassOf ?class.
+                                      FILTER (?c != ?class) } """.

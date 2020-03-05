@@ -1,0 +1,270 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>eu.fbk.ict.pdi</groupId>
+    <artifactId>horus-ai</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>horusai-services</artifactId>
+  <!-- <version>0.0.1-SNAPSHOT</version> -->
+  <packaging>war</packaging>
+  
+ 
+   
+  
+  
+  
+  
+  <dependencies>
+      <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>3.8.1</version>
+          <scope>test</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>javax.servlet</groupId>
+          <artifactId>javax.servlet-api</artifactId>
+          <version>3.1.0</version>
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.rdf4j</groupId>
+          <artifactId>rdf4j-runtime</artifactId>
+          <version>${rdf4j-version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+          <version>2.8.0</version>
+      </dependency>
+      <dependency>
+          <groupId>commons-httpclient</groupId>
+          <artifactId>commons-httpclient</artifactId>
+          <version>3.1</version>
+      </dependency>
+      <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>1.10</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>1.7.25</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+          <version>1.7.25</version>
+          <scope>provided</scope>
+      </dependency>
+
+      <!-- https://mvnrepository.com/artifact/com.rabbitmq/amqp-client -->
+      <dependency>
+          <groupId>com.rabbitmq</groupId>
+          <artifactId>amqp-client</artifactId>
+          <version>5.0.0</version>
+      </dependency>
+      <!-- https://mvnrepository.com/artifact/org.aeonbits.owner/owner-java8 -->
+      <dependency>
+          <groupId>org.aeonbits.owner</groupId>
+          <artifactId>owner-java8</artifactId>
+          <version>1.0.9</version>
+      </dependency>
+
+      <!-- Logger -->
+      <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>1.2.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.eclipse.rdf4j</groupId>
+          <artifactId>rdf4j-model</artifactId>
+          <version>${rdf4j-version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.rdf4j</groupId>
+          <artifactId>rdf4j-rio-api</artifactId>
+          <version>${rdf4j-version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.rdf4j</groupId>
+          <artifactId>rdf4j-rio-turtle</artifactId>
+          <version>${rdf4j-version}</version>
+          <scope>runtime</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.rdf4j</groupId>
+          <artifactId>rdf4j-rio-trig</artifactId>
+          <version>${rdf4j-version}</version>
+          <scope>runtime</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.rdf4j</groupId>
+          <artifactId>rdf4j-rio-rdfxml</artifactId>
+          <version>${rdf4j-version}</version>
+          <scope>runtime</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>${guava-version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+          <version>${jsr305-version}</version>
+          <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>eu.fbk.rdfpro</groupId>
+          <artifactId>rdfpro-core</artifactId>
+          <version>${rdfpro-version}</version>
+      </dependency>
+      <dependency>
+          <groupId>eu.fbk.rdfpro</groupId>
+          <artifactId>rdfpro-tql</artifactId>
+          <version>${rdfpro-version}</version>
+          <scope>runtime</scope>
+      </dependency>
+      <dependency>
+          <groupId>eu.fbk.utils</groupId>
+          <artifactId>utils-core</artifactId>
+          <version>${utils-version}</version>
+      </dependency>
+
+
+     <!-- Trec Clients 
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>session-manager-client</artifactId>
+        <version>0.32.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>clinical-data-client</artifactId>
+        <version>0.23.21</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>personal-data-client</artifactId>
+        <version>LATEST</version>
+      </dependency>
+      -->
+
+
+      <!-- Trec Libraries 
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>lib-server</artifactId>
+        <version>0.63.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>lib-security</artifactId>
+        <version>0.13.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>lib-service-names</artifactId>
+        <version>1.12.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.fbk.trec</groupId>
+        <artifactId>lib-exceptions</artifactId>
+        <version>1.5.4</version>
+      </dependency>
+      
+      -->
+
+      <!-- Trec External Libraries -->
+
+      <dependency>
+        <groupId>org.glassfish.jersey</groupId>
+        <artifactId>jersey-bom</artifactId>
+        <version>2.26</version>
+        <type>pom</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-json-jackson</artifactId>
+        <version>2.25.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.squareup.retrofit2</groupId>
+        <artifactId>converter-jackson</artifactId>
+        <version>2.3.0</version>
+      </dependency>
+    </dependencies>
+
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>bintray</name>
+            <url>http://jcenter.bintray.com</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>trec_azure_repository</id>
+            <url>https://pkgs.dev.azure.com/trec-project/_packaging/registry/maven/v1</url>
+            <layout>default</layout>
+            <releases>
+                <updatePolicy>always</updatePolicy>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <updatePolicy>daily</updatePolicy>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>futuro_media</id>
+            <url>https://maven.futuro.media/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>project.local</id>
+            <name>project</name>
+            <url>file:${project.basedir}/repo</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <rdfpro-version>0.7-SNAPSHOT</rdfpro-version>
+        <rdf4j-version>2.4.1</rdf4j-version>
+        <guava-version>20.0-rc1</guava-version>
+        <slf4j-version>1.7.12</slf4j-version>
+        <jsr305-version>3.0.0</jsr305-version>
+        <junit-version>4.12</junit-version>
+        <utils-version>3.1</utils-version>
+        <assembly-plugin-version>2.5.4</assembly-plugin-version>
+    </properties>
+    
+    
+</project>

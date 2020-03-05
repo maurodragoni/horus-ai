@@ -1,0 +1,224 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rr:   <http://rdfpro.fbk.eu/ontologies/rules#> .
+@prefix :     <http://www.fbk.eu/ontologies/virtualcoach#> .
+
+<http://www.fbk.eu/ontologies/virtualcoach#> rr:prefix "".
+
+
+### Checks the amount of food consumed during each meal.
+### Scenarios in which these rules have been applied:
+### - check_contains_food_qb: if the consumed amount of a food respects the less, equal, or greater operators.
+### - check_contains_food_qb_interval: if the consumed amount of a food respects the interval operator.
+### - check_contains_food_qb_portion: if the consumed portions of a food respects the less, equal, or greater operators.
+### - check_contains_food_qb_portion_interval: if the consumed portions of a food respects the interval operator.
+
+
+# { ?rule :appliesTo ?user } UNION { ?rule :appliesTo/(:containsUser|^:belongsProfile) ?user }
+# BIND (?mealTs AS ?timestamp)
+
+:check_contains_food_qb a rr:Rule, rr:NonFixpointRule;
+    rr:phase  10;
+    rr:insert """ ?v :hasViolationRule ?rule;
+                     :hasViolationGoal ?goal;
+                     :hasViolationUser ?user;
+                     :hasViolationQuantity ?quantity;
+                     :hasViolationConstraint ?operator;
+                     :hasViolationEntityType ?et;
+                     :hasViolationLevel ?level;
+                     :hasViolationStartTime ?minTimestamp;
+                     :hasViolationEndTime ?timestamp;
+                     :hasTimestamp ?timestamp. """;
+    rr:where  """ {
+                    SELECT ?rule ?goal ?user ?et ?mv
+                           (MAX(?mealTs) AS ?timestamp) (MIN(?mealTs) AS ?minTimestamp) (SUM(?entityAmount) AS ?quantity)
+                    WHERE {
+                      ?rule a :MonitoringRule;
+                              :timing ?timing;
+                              :command "contains";
+                              :monitoredEntityType :Food;
+                              :hasMonitoredValue ?mv;
+                              :monitoredEntity ?class.
+                      FILTER NOT EXISTS {?rule :hasOperator "percentage"}
+                      FILTER NOT EXISTS {?rule :hasOperator "interval"}
+                      FILTER EXISTS {?rule :timing :Meal}
+                      {SELECT DISTINCT ?rule ?goal ?user WHERE { 
+                        #{?rule :appliesTo ?user} UNION {?rule :appliesTo/(:containsUser|^:belongsProfile) ?user}}
+                        {?rule :appliesTo ?user} UNION {?rule :appliesTo ?goal. ?goal ^:hasProfile/^:belongsProfile ?user.}}
+                      }
+                      ?meal :hasUser|^:consumed ?user;
+                            :hasTimestamp ?mealTs.
+                      {?timing rdfs:subClassOf :Timespan} UNION {?meal a ?timing}
+					            BIND (:mintEntityType(?class) AS ?et)
+					            BIND (:computeTimestamp(:Meal, ?mealTs) AS ?lowerTimestamp)
+                      FILTER (?mealTs > ?lowerTimestamp)
+                      ?cf ^:hasConsumedFood ?meal; :hasFood ?food; :amountFood ?entityAmount.
+                      ?food a ?class.
+                    }
+                    GROUP BY ?rule ?goal ?user ?et ?mv
+                  }
+				          ?rule :hasOperator ?operator.
+				          ?rule :hasMonitoredValue ?value. 
+				          FILTER (?operator = "equal" && ?quantity != ?value ||
+                          ?operator = "less" && ?quantity >= ?value ||
+                          ?operator = "greater" && ?quantity < ?value)
+                  ?rule :hasRuleId ?ruleId.
+                  ?user :hasUserId ?userId.
+                  BIND (:computeViolationLevel(?mv, ?quantity) AS ?level)
+                  BIND (:mintViolation(?ruleId, ?userId, ?timestamp) AS ?v) """.
+
+
+
+:check_contains_food_qb_interval a rr:Rule, rr:NonFixpointRule;
+    rr:phase  10;
+    rr:insert """ ?v :hasViolationRule ?rule;
+                     :hasViolationGoal ?goal;
+                     :hasViolationUser ?user;
+                     :hasViolationQuantity ?quantity;
+                     :hasViolationConstraint ?operator;
+                     :hasViolationEntityType ?et;
+                     :hasViolationLevel ?level;
+                     :hasViolationStartTime ?minTimestamp;
+                     :hasViolationEndTime ?timestamp;
+                     :hasTimestamp ?timestamp. """;
+    rr:where  """ {
+                    SELECT ?rule ?goal ?user ?et
+                           (MAX(?mealTs) AS ?timestamp) (MIN(?mealTs) AS ?minTimestamp) (SUM(?entityAmount) AS ?quantity)
+                    WHERE {
+                      ?rule a :MonitoringRule;
+                              :timing ?timing;
+                              :command "contains";
+                              :monitoredEntityType :Food;
+                              :monitoredEntity ?class.
+                      FILTER EXISTS {?rule :hasOperator "interval"}
+                      FILTER EXISTS {?rule :timing :Meal}
+                      {SELECT DISTINCT ?rule ?goal ?user WHERE { 
+                        #{?rule :appliesTo ?user} UNION {?rule :appliesTo/(:containsUser|^:belongsProfile) ?user}}
+                        {?rule :appliesTo ?user} UNION {?rule :appliesTo ?goal. ?goal ^:hasProfile/^:belongsProfile ?user.}}
+                      }
+                      ?meal :hasUser|^:consumed ?user;
+                            :hasTimestamp ?mealTs.
+                      { ?timing rdfs:subClassOf :Timespan } UNION { ?meal a ?timing }
+					            BIND (:mintEntityType(?class) AS ?et)
+					            BIND (:computeTimestamp(:Meal, ?mealTs) AS ?lowerTimestamp)
+                      FILTER (?mealTs > ?lowerTimestamp)
+                      ?cf   ^:hasConsumedFood ?meal; :hasFood ?food; :amountFood ?entityAmount.
+                      ?food a ?class.
+                    }
+                    GROUP BY ?rule ?goal ?user ?et
+                  }
+				          ?rule :hasOperator ?operator.
+				          ?rule :hasMonitoredValueInterval ?interval.
+                  ?interval :lowerBound ?lower;
+                            :upperBound ?upper.
+				          FILTER (?operator = "interval" && (?quantity < ?lower || ?quantity > ?upper))
+                  ?rule :hasRuleId ?ruleId.
+                  ?user :hasUserId ?userId.
+                  BIND (:computeViolationLevel(?mv, ?quantity) AS ?level)
+                  BIND (:mintViolation(?ruleId, ?userId, ?timestamp) AS ?v) """.
+                  
+                  
+                  
+##################################################################################################################
+
+
+:check_contains_food_qb_portion a rr:Rule, rr:NonFixpointRule;
+    rr:phase  10;
+    rr:insert """ ?v :hasViolationRule ?rule;
+                     :hasViolationGoal ?goal;
+                     :hasViolationUser ?user;
+                     :hasViolationQuantity ?quantity;
+                     :hasViolationConstraint ?operator;
+                     :hasViolationEntityType ?et;
+                     :hasViolationLevel ?level;
+                     :hasViolationStartTime ?minTimestamp;
+                     :hasViolationEndTime ?timestamp;
+                     :hasTimestamp ?timestamp. """;
+    rr:where  """ {
+                    SELECT ?rule ?goal ?user ?et ?mv
+                           (MAX(?mealTs) AS ?timestamp) (MIN(?mealTs) AS ?minTimestamp) (COUNT(DISTINCT ?cf) AS ?quantity)
+                    WHERE {
+                      ?rule a :MonitoringRule;
+                              :timing ?timing;
+                              :command "portion";
+                              :monitoredEntityType :Food;
+                              :hasMonitoredValue ?mv;
+                              :monitoredEntity ?class.
+                      FILTER NOT EXISTS {?rule :hasOperator "percentage"}
+                      FILTER NOT EXISTS {?rule :hasOperator "interval"}
+                      FILTER EXISTS {?rule :timing :Meal}
+                      {SELECT DISTINCT ?rule ?goal ?user WHERE { 
+                        #{?rule :appliesTo ?user} UNION {?rule :appliesTo/(:containsUser|^:belongsProfile) ?user}}
+                        {?rule :appliesTo ?user} UNION {?rule :appliesTo ?goal. ?goal ^:hasProfile/^:belongsProfile ?user.}}
+                      }
+                      ?meal :hasUser|^:consumed ?user;
+                            :hasTimestamp ?mealTs.
+                      {?timing rdfs:subClassOf :Timespan} UNION {?meal a ?timing}
+					            BIND (:mintEntityType(?class) AS ?et)
+					            BIND (:computeTimestamp(:Meal, ?mealTs) AS ?lowerTimestamp)
+                      FILTER (?mealTs > ?lowerTimestamp)
+                      ?cf ^:hasConsumedFood ?meal; :hasFood ?food; :amountFood ?entityAmount.
+                      ?food a ?class.
+                    }
+                    GROUP BY ?rule ?goal ?user ?et ?mv
+                  }
+				          ?rule :hasOperator ?operator.
+				          ?rule :hasMonitoredValue ?value. 
+				          FILTER (?operator = "equal" && ?quantity != ?value ||
+                          ?operator = "less" && ?quantity >= ?value ||
+                          ?operator = "greater" && ?quantity < ?value)
+                  ?rule :hasRuleId ?ruleId.
+                  ?user :hasUserId ?userId.
+                  BIND (:computeViolationLevel(?mv, ?quantity) AS ?level)
+                  BIND (:mintViolation(?ruleId, ?userId, ?timestamp) AS ?v) """.
+                  
+                  
+                  
+:check_contains_food_qb_portion_interval a rr:Rule, rr:NonFixpointRule;
+    rr:phase  10;
+    rr:insert """ ?v :hasViolationRule ?rule;
+                     :hasViolationGoal ?goal;
+                     :hasViolationUser ?user;
+                     :hasViolationQuantity ?quantity;
+                     :hasViolationConstraint ?operator;
+                     :hasViolationEntityType ?et;
+                     :hasViolationLevel ?level;
+                     :hasViolationStartTime ?minTimestamp;
+                     :hasViolationEndTime ?timestamp;
+                     :hasTimestamp ?timestamp. """;
+    rr:where  """ {
+                    SELECT ?rule ?goal ?user ?et ?mv
+                           (MAX(?mealTs) AS ?timestamp) (MIN(?mealTs) AS ?minTimestamp) (COUNT(DISTINCT ?cf) AS ?quantity)
+                    WHERE {
+                      ?rule a :MonitoringRule;
+                              :timing ?timing;
+                              :command "portion";
+                              :monitoredEntityType :Food;
+                              :hasMonitoredValue ?mv;
+                              :monitoredEntity ?class.
+                      FILTER EXISTS {?rule :hasOperator "interval"}
+                      FILTER EXISTS {?rule :timing :Meal}
+                      {SELECT DISTINCT ?rule ?goal ?user WHERE { 
+                        #{?rule :appliesTo ?user} UNION {?rule :appliesTo/(:containsUser|^:belongsProfile) ?user}}
+                        {?rule :appliesTo ?user} UNION {?rule :appliesTo ?goal. ?goal ^:hasProfile/^:belongsProfile ?user.}}
+                      }
+                      ?meal :hasUser|^:consumed ?user;
+                            :hasTimestamp ?mealTs.
+                      {?timing rdfs:subClassOf :Timespan} UNION {?meal a ?timing}
+					            BIND (:mintEntityType(?class) AS ?et)
+					            BIND (:computeTimestamp(:Meal, ?mealTs) AS ?lowerTimestamp)
+                      FILTER (?mealTs > ?lowerTimestamp)
+                      ?cf ^:hasConsumedFood ?meal; :hasFood ?food; :amountFood ?entityAmount.
+                      ?food a ?class.
+                    }
+                    GROUP BY ?rule ?goal ?user ?et ?mv
+                  }
+				          ?rule :hasOperator ?operator.
+				          ?rule :hasMonitoredValueInterval ?interval.
+                  ?interval :lowerBound ?lower;
+                            :upperBound ?upper.
+				          FILTER (?operator = "interval" && (?quantity < ?lower || ?quantity > ?upper))
+                  ?rule :hasRuleId ?ruleId.
+                  ?user :hasUserId ?userId.
+                  BIND (:computeViolationLevel(?mv, ?quantity) AS ?level)
+                  BIND (:mintViolation(?ruleId, ?userId, ?timestamp) AS ?v) """.

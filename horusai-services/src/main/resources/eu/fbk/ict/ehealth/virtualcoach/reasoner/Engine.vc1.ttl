@@ -1,0 +1,115 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rr:   <http://rdfpro.fbk.eu/ontologies/rules#> .
+@prefix :     <http://www.fbk.eu/ontologies/virtualcoach#> .
+
+<http://www.fbk.eu/ontologies/virtualcoach#> rr:prefix "".
+
+
+:hasRuleId a rr:MetaVocabularyTerm.
+:hasPriority a rr:MetaVocabularyTerm.
+:timing a rr:MetaVocabularyTerm.
+:command a rr:MetaVocabularyTerm.
+:appliesTo a rr:MetaVocabularyTerm.
+:monitoredEntityType a rr:MetaVocabularyTerm.
+:monitoredEntity a rr:MetaVocabularyTerm.
+:hasOperator a rr:MetaVocabularyTerm.
+:hasMonitoredValue a rr:MetaVocabularyTerm.
+:hasMonitoredValueInterval a rr:MetaVocabularyTerm.
+:lowerBound a rr:MetaVocabularyTerm.
+:upperBound a rr:MetaVocabularyTerm.
+:ViolationInterval a rr:MetaVocabularyTerm.
+:MonitoringRule a rr:MetaVocabularyTerm.
+
+
+# TODO
+# - revise rules (if necessary) based on final modeling of ComposedFood
+#   concept. In particular, we might need a rule deriving the amounts
+#   of calories/energy/water and nutrients for a ComposedFood starting
+#   from its components
+
+
+# The following rules fill a number of Violation properties, deriving
+# them from 4 core Violation properties (the ones needed to create a
+# Violation):
+# (1) :hasViolationRule (exactly one value)
+# (2) :hasViolationUser (exactly one values)
+# (3) :hasViolationQuantity (zero or one value)
+# (4) :hasTimestamp (exactly one value)
+
+:fill_violation a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v a :Violation;
+                     :hasViolationRuleId ?ruleId;
+                     :hasViolationPriority ?priority;
+                     :hasViolationTiming ?timing """;
+    rr:where  """ ?rule ^:hasViolationRule ?v;
+                        :hasRuleId ?ruleId;
+                        :hasPriority ?priority;
+                        :timing ?timing """.
+
+:fill_violation_entity a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v :hasViolationEntity ?entity """;
+#                    :hasViolationEntityType ?entityType """;
+    rr:where  """ ?rule ^:hasViolationRule ?v;
+                         :monitoredEntityType ?entityType;
+                         :monitoredEntity ?entity """.
+                         
+:fill_violation_goalconstraint a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v :hasViolationGoalConstraint ?goalconstraint """;
+    rr:where  """ ?v :hasViolationGoal ?goal.
+                  ?goal a :Goal;
+                        :hasMonitoredValue ?goalconstraint """.
+                  
+:fill_violation_meals a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v :hasViolationMeal ?meal """;
+    rr:where  """ ?v :hasViolationRule/:timing ?timing;
+                     :hasViolationUser ?user;
+                     :hasViolationStartTime ?startTimestamp;
+                     :hasViolationEndTime ?endTimestamp;
+                     :hasTimestamp ?timestamp.
+                  ?meal :hasUser|^:consumed ?user;
+                        :hasTimestamp ?mealTs.
+                  FILTER (?mealTs >= ?startTimestamp && ?mealTs <= ?endTimestamp) """.
+
+:fill_violation_expected1 a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v :hasViolationExpectedQuantity ?expected """;
+    rr:where  """ ?v :hasViolationRule ?rule;
+                     :hasViolationQuantity ?quantity.
+                  ?rule :hasMonitoredValue ?expected """.
+                  
+:fill_violation_expected2 a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v :hasViolationExpectedQuantity ?expected """;
+    rr:where  """ ?v :hasViolationRule ?rule;
+                     :hasViolationQuantity ?quantity.
+                  ?rule :hasMonitoredValueInterval ?ri.
+                  ?ri :lowerBound ?rl;
+                      :upperBound ?ru.
+                  BIND(IF(?quantity < ?rl, ?rl, ?ru) AS ?expected) """.
+
+#:fill_violation_level a rr:Rule, rr:NonFixpointRule;
+#    rr:phase  20;
+#    rr:insert """ ?v :hasViolationLevel ?level """;
+#    rr:where  """ ?vi :hasViolationLevel ?level;
+#                      a :ViolationInterval;
+#                      :lowerBound ?vl;
+#                      :upperBound ?vu.
+#                  ?v :hasViolationQuantity ?quantity;
+#                     :hasViolationExpectedQuantity ?expected.
+#                  BIND (ABS(?quantity - ?expected) / ?expected AS ?delta)
+#                  FILTER (?delta >= ?vl && ?delta < ?vu) """.
+
+:fill_violation_history a rr:Rule, rr:NonFixpointRule;
+    rr:phase  20;
+    rr:insert """ ?v :hasViolationHistory ?seq """;
+    rr:where  """ { SELECT  ?user ?rule ?ts ?v
+                    WHERE { ?v :hasViolationRule ?rule;
+                               :hasViolationUser ?user;
+                               :hasTimestamp ?ts. }
+                    ORDER BY ?user ?rule ?ts }
+                  BIND (:seq(?user, ?rule) AS ?seq) """.

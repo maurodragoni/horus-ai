@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <!-- 
+  <parent>
+    <groupId>eu.fbk.ict.pdi</groupId>
+    <artifactId>horus-ai</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+   -->
+  
+  <groupId>eu.fbk.ict.pdi</groupId>
+  <artifactId>jetty-embedded</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>jetty-embedded</name>
+  <url>http://maven.apache.org</url>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <prometheus.version>0.3.0</prometheus.version>
+  </properties>
+    
+  <dependencies>
+     <dependency>
+         <groupId>org.eclipse.jetty</groupId>
+         <artifactId>jetty-webapp</artifactId>
+         <version>9.4.6.v20170531</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.eclipse.jetty</groupId>
+         <artifactId>jetty-servlet</artifactId>
+         <version>9.4.6.v20170531</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.eclipse.jetty.http2</groupId>
+         <artifactId>http2-server</artifactId>
+         <version>9.4.6.v20170531</version>
+     </dependency>
+
+     <!-- Needed for web.xml metadata, otherwise it will try to load the schema from java.sun.com -->
+     <dependency>
+         <groupId>org.eclipse.jetty.toolchain</groupId>
+         <artifactId>jetty-schemas</artifactId>
+         <version>4.0.0</version>
+         <scope>runtime</scope>
+     </dependency>
+
+     <!-- Prometheus dependencies -->
+     <dependency>
+         <groupId>io.prometheus</groupId>
+         <artifactId>simpleclient</artifactId>
+       <version>${prometheus.version}</version>
+     </dependency>
+
+     <dependency>
+         <groupId>io.prometheus</groupId>
+         <artifactId>simpleclient_common</artifactId>
+       <version>${prometheus.version}</version>
+     </dependency>
+
+     <dependency>
+         <groupId>io.prometheus</groupId>
+         <artifactId>simpleclient_hotspot</artifactId>
+       <version>${prometheus.version}</version>
+     </dependency>
+
+     <!--Prometheus servlet to expose -->
+     <dependency>
+         <groupId>io.prometheus</groupId>
+         <artifactId>simpleclient_servlet</artifactId>
+       <version>${prometheus.version}</version>
+     </dependency>
+
+     <!--Configuration using env variables and Java interfaces-->
+     <dependency>
+         <groupId>org.aeonbits.owner</groupId>
+         <artifactId>owner</artifactId>
+         <version>1.0.9</version>
+     </dependency>
+
+     <!-- Logger -->
+     <dependency>
+         <groupId>ch.qos.logback</groupId>
+         <artifactId>logback-classic</artifactId>
+         <version>1.2.3</version>
+     </dependency>
+
+     <dependency>
+         <groupId>ch.qos.logback</groupId>
+         <artifactId>logback-core</artifactId>
+         <version>1.2.3</version>
+     </dependency>
+
+     <dependency>
+         <groupId>net.logstash.logback</groupId>
+         <artifactId>logstash-logback-encoder</artifactId>
+         <version>4.11</version>
+     </dependency>
+
+     <dependency>
+         <groupId>org.slf4j</groupId>
+         <artifactId>jul-to-slf4j</artifactId>
+         <version>1.7.25</version>
+     </dependency>
+
+     <!-- Dependency on the helis war, so it is correctly built by Maven during the build -->
+     <dependency>
+         <groupId>eu.fbk.ict.ehealth</groupId>
+         <artifactId>helis-servlet</artifactId>
+         <version>0.0.1-SNAPSHOT</version>
+         <type>war</type>
+         <scope>provided</scope>
+     </dependency>
+
+   </dependencies>
+
+
+
+
+    <build>
+        <plugins>
+        <!--
+           <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.0.0</version>
+          <configuration>
+            <archive>
+              <manifest>
+                <mainClass>eu.fbk.trec.server.Main</mainClass>
+              </manifest>
+            </archive>
+            <descriptorRefs>
+              <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+          </configuration>
+          <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+        </plugin>
+         -->
+            <!--Shade plugin, to create a fat Jar for the embedded Jetty, with all the jars packed inside it-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <manifestEntries>
+                                    <Main-Class>eu.fbk.ict.pdi.server.Main</Main-Class>
+                                </manifestEntries>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <finalName>app</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+            <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.1.1</version>
+            <executions>
+              <execution>
+                <phase>test</phase>
+                <goals>
+                    <goal>java</goal>
+                </goals>
+                <configuration>
+                    <mainClass>eu.fbk.trec.server.Main</mainClass>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+           -->
+        </plugins>
+    </build>
+    
+</project>
